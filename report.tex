@@ -1,0 +1,132 @@
+\documentclass[12pt, letterpaper]{report}
+\usepackage[newfloat]{minted}
+\usepackage{caption}
+\usepackage{tocloft}
+\usepackage{acro}
+
+% class `abbrev': abbreviations:
+\DeclareAcronym{omr}{
+  short = OMR ,
+  long  = Optical mark recognition ,
+  class = abbrev
+}
+\DeclareAcronym{oer}{
+  short = OER ,
+  long  = Open educational resources ,
+  class = abbrev
+}
+
+\begin{document}
+\definecolor{bg}{rgb}{0.95,0.95,0.95}
+\frenchspacing
+\newenvironment{ex}{\captionsetup{type=listing}}{}
+\SetupFloatingEnvironment{listing}{name=Code Sample}
+\newcommand{\listcodesamples}{List of Code Samples}
+\newlistof{codesample}{mcf}{\listcodesamples}
+
+\newcommand{\codesample}[1]
+{
+    \captionof{listing}{#1}
+    \refstepcounter{codesample}
+    \addcontentsline{mcf}{codesample}
+    {\protect\numberline{\thecodesample}#1}\par
+}
+
+\hyphenation{pro-hib-it-ive-ly Scan-tron ubiq-uit-ous}
+
+\acsetup{first-style=short}
+
+\title{Test Latex Doc}
+\author{Ian Sanders}
+\date{December 2019}
+\maketitle
+
+\begin{abstract}
+Lorem ipsum `dolor' sit amet.
+\end{abstract}
+
+\tableofcontents
+\listofcodesample
+\printacronyms[include-classes=abbrev,name=Abbreviations]
+
+\chapter{Introduction}
+\section{Background}
+Optical mark recognition (\ac{omr}) is a ubiquitous technology whenever large amounts
+of controlled physical data needs to be converted to a digital form. This is an
+especially common task in the field of education, where the scoring of dozens to
+hundreds of multiple choice tests is a regular need. Manual grading of such
+examinations is a mundane and time-consuming task that can be easily avoided
+with the use of \ac{omr}, as the submission format is completely controlled.
+\section{Existing Solutions}
+Many of the most popular \ac{omr} solutions presently available are prohibitively
+expensive. The most popular product available, sold by Scantron, consists of a
+proprietary scanner that is only compatible with Scantron sheets. The scanner
+alone can cost several thousand dollars, and the sheets present a continuing
+cost for as long as the scanner is in use.
+
+An increasing interest in open educational resources (\ac{oer}) has led to the
+development of several free and open source solutions, such as: FormScanner,
+queXF, and Auto Multiple Choice. These softwares work extremely well, however,
+they have failed to become mainstream due to their increased complexity. Thus,
+there exists a need for a simple, free solution that can be implemented with
+minimal training or setup time.
+\section{Proposed Solution}
+A simple, freely available software and mark sheet pair is proposed. By
+providing a freely available mark sheet in printable form, setup time is reduced
+to the time it takes to download and print the file. In addition, a simple,
+easy-to-use software utility that prioritizes reliability will encourage
+educators to make the transition from proprietary solutions to an open and free
+one. The software will remain simple while still providing a competitive feature
+suite and will act as a bridge between raw exam results and more full-featured
+exam analysis software.
+\subsection{Requirements}
+Based on the problem analysis and proposed solution, the final product should:
+
+\begin{enumerate}
+  \item Be freely available and open-source
+  \item Be as reliable as possible in order to produce fair results
+  \item Process files in bulk
+  \item Be simple and easy to learn and use
+  \item Sort results
+  \item Output files that can be input into analysis software
+  \item Require minimal setup
+  \item Be immediately understood by students taking exams
+  \item Provide readily available training resources for educators
+  \item Complete processing of results in reasonable amount of time
+\end{enumerate}
+
+\chapter{Design of Multiple Choice Sheet}
+\section{Requirements}
+\section{Design Overview}
+\section{Features}
+\subsection{Grid System}
+\subsection{Corner Marks}
+
+\chapter{Design of MCR Software}
+\section{Requirements}
+\section{Design Overview}
+\section{Features}
+\subsection{Automatic Scoring}
+\subsection{Rearrangement by Key}
+\subsection{Sorting Results}
+\subsection{Output Files}
+\section{Optical Mark Recognition Process}
+\subsection{Image Preprocessing}
+\subsection{Corner Detection}
+\subsection{Grid Establishment}
+\subsection{Mark Reading}
+
+
+Code block:
+
+\begin{ex}
+\codesample{My Python}
+\label{codesample:c-code}
+\begin{minted}[autogobble, bgcolor=bg]{python}
+  def funcname(parameter_list):
+    pass
+\end{minted}
+\end{ex}
+
+example content \ref{codesample:c-code}
+\end{document}
