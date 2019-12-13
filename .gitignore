@@ -276,7 +276,7 @@ TSWLatexianTemp*
 *.lpz
 
 # Other files
-*.pdf
+report.pdf
 *.mcf
 *.codesample
 *.c
