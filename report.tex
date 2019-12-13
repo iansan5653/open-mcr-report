@@ -3,6 +3,8 @@
 \usepackage{caption}
 \usepackage{tocloft}
 \usepackage{acro}
+\usepackage{pdfpages}
+\usepackage[toc,page,title]{appendix}
 
 % class `abbrev': abbreviations:
 \DeclareAcronym{omr}{
@@ -35,6 +37,9 @@
 \hyphenation{pro-hib-it-ive-ly Scan-tron ubiq-uit-ous}
 
 \acsetup{first-style=short}
+
+\AtBeginEnvironment{appendices}{\renewcommand\thesection{Appendix~\Alph{section}}}
+\renewcommand{\appendixname}{Appendix}
 
 \title{Test Latex Doc}
 \author{Ian Sanders}
@@ -96,8 +101,18 @@ Based on the problem analysis and proposed solution, the final product should:
 \end{enumerate}
 
 \chapter{Design of Multiple Choice Sheet}
-\section{Requirements}
+The multiple-choice sheet is the physical piece of paper that all students
+taking exams will fill out. It is also known as a `bubble sheet', easily recognized
+by many due to its grid of circles that must be filled in to input answers. In order to
+develop a reliable solution with minimal setup, only one sheet is supported
+by the software. Therefore, this sheet must be highly optimized.
+
+In order to ensure that the entire solution is freely available to all
+educators, an entirely new multiple-choice sheet was developed for use.
+This new sheet balances optimization for optical mark recognition with
+user-friendliness.
 \section{Design Overview}
+The optical mark sheet
 \section{Features}
 \subsection{Grid System}
 \subsection{Corner Marks}
@@ -115,18 +130,13 @@ Based on the problem analysis and proposed solution, the final product should:
 \subsection{Corner Detection}
 \subsection{Grid Establishment}
 \subsection{Mark Reading}
-
-
-Code block:
-
-\begin{ex}
-\codesample{My Python}
-\label{codesample:c-code}
-\begin{minted}[autogobble, bgcolor=bg]{python}
-  def funcname(parameter_list):
-    pass
-\end{minted}
-\end{ex}
-
-example content \ref{codesample:c-code}
+\begin{appendices}
+\section{Acknowledgements}
+\section{Licenses}
+\label{sect:licenses}
+\section{Multiple-Choice Sheet}
+The full printable multiple-choice sheet is available on the next page. See
+\ref{sect:licenses} for the license information for this sheet.
+\includepdf{sheet.pdf} 
+\end{appendices}
 \end{document}
