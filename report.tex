@@ -1,5 +1,5 @@
 \documentclass[12pt, letterpaper]{report}
-\usepackage[newfloat]{minted}
+\usepackage{minted}
 \usepackage{caption}
 \usepackage{tocloft}
 \usepackage{acro}
@@ -7,10 +7,13 @@
 \usepackage[toc,page,title]{appendix}
 \usepackage[colorlinks=true]{hyperref}
 \usepackage{graphicx}
+\usepackage{gensymb}
 \definecolor{usfgreen}{rgb}{0, 0.40, 0.28}
 \newcommand*{\sectref}[1]{\hypersetup{linkcolor=usfgreen}\hyperref[{#1}]{\ref*{#1}: \nameref*{#1}}}
-\newcommand*{\itemref}[1]{\hypersetup{linkcolor=usfgreen}\hyperref[{#1}]{\autoref*{#1}: \nameref*{#1}}}
+\newcommand*{\itemref}[1]{\hypersetup{linkcolor=usfgreen}\hyperref[{#1}]{\autoref*{#1}}}
 \newcommand*{\boxedimage}[1]{\fbox{\includegraphics[width=0.5\textwidth]{img/#1}}}
+\DeclareCaptionType{codesample}[Code Sample][List of Code Samples]
+\DeclareCaptionType{eqn}[Equation][List of Equations]
 \newcommand{\fig}[3]{
   \begin{figure}[h]
     \caption{#1}
@@ -18,6 +21,13 @@
     \centering
     \boxedimage{#2}
   \end{figure}
+}
+\newcommand{\eq}[3]{
+  \begin{eqn}[h]
+    #2
+    \caption{#1}
+    \label{#3}
+  \end{eqn}
 }
 \newcommand*{\descitem}[1]{\item[#1] \hfill \\ }
 
@@ -41,18 +51,6 @@
 \begin{document}
 \definecolor{bg}{rgb}{0.95,0.95,0.95}
 \frenchspacing
-\newenvironment{ex}{\captionsetup{type=listing}}{}
-\SetupFloatingEnvironment{listing}{name=Code Sample}
-\newcommand{\listcodesamples}{List of Code Samples}
-\newlistof{codesample}{mcf}{\listcodesamples}
-
-\newcommand{\codesample}[1]
-{
-    \captionof{listing}{#1}
-    \refstepcounter{codesample}
-    \addcontentsline{mcf}{codesample}
-    {\protect\numberline{\thecodesample}#1}\par
-}
 
 \hyphenation{pro-hib-it-ive-ly Scan-tron ubiq-uit-ous cor-respond-ing Auto-matic}
 
@@ -61,17 +59,15 @@
 \AtBeginEnvironment{appendices}{\renewcommand\thesection{Appendix~\Alph{section}}}
 \renewcommand{\appendixname}{Appendix}
 
-\title{Test Latex Doc}
+\title{Development of OpenMCR: An Open-Source Tool for OMR Exams}
 \author{Ian Sanders}
 \date{December 2019}
 \maketitle
 
-\begin{abstract}
-Lorem ipsum `dolor' sit amet.
-\end{abstract}
-
 \tableofcontents
-\listofcodesample
+\listofcodesamples
+\listoffigures
+\listofeqns
 \printacronyms[include-classes=abbrev,name=Abbreviations]
 
 \chapter{Introduction}
@@ -119,7 +115,6 @@ Based on the problem analysis and proposed solution, the final product should:
   \item Provide readily available training resources for educators
   \item Complete processing of results in reasonable amount of time
 \end{enumerate}
-
 
 \chapter{Design of Multiple Choice Sheet}
 The multiple-choice sheet is the physical piece of paper that all students
@@ -177,7 +172,6 @@ included:
   more of those), as described in \sectref{sect:scoring}.
 \end{description}
 
-
 \section{Features}
 Two primary features make the multiple-choice sheet optimal for use with \ac{omr}.
 
@@ -212,11 +206,18 @@ attention that might result in idle doodling or defacing and render
 mark recognition impossible.
 \fig{Detail view of multiple-choice sheet corner marks.}{corner_marks.png}{fig:corners}
 
+
+
 \chapter{Design of \ac{omr} Software}
 The software developed to read the multiple-choice sheets is a free, open-source
 utility called \textit{OpenMCR}. This tool provides a simple interface to the
 complex process of importing, preprocessing, and reading the filled sheets.
 \fig{Logo for OpenMCR software utility.}{logo.png}{fig:logo}
+
+Raw results from the software are output in a \ac{csv} file in the form shown 
+in \sectref{sect:rawresults} as \verb!YYYY-MM-DD_HH-mm-SS__results.csv!, where
+\verb!YYYY-MM-DD_HH-mm-SS! is the time that processing was performed (in
+order to avoid overwriting any existing files).
 
 \section{User Interface Design}
 OpenMCR provides test administrators with a simple, intuitive interface in which
@@ -226,13 +227,13 @@ simple process from the top of the screen to the bottom:
   \item The user selects a folder to import image files from. All image files
   located directly in the selected folder will be used.
   \item The user chooses, through simple checkboxes, whether or not to convert
-  empty answers to the letter \textbf{G} and multiple selected answers to the
-  letter \textbf{F}. This can aid with postprocessing of results.
-  \item [Optional] The user can upload a custom \ac{csv} file to use as an
+  empty answers to the letter \textbf!G! and multiple selected answers to the
+  letter \verb!F!. This can aid with postprocessing of results.
+  \item~[\textit{Optional}] The user can upload a custom \ac{csv} file to use as an
   answer key. As described in \sectref{sect:scoring}, the user can also create
   keys using the multiple-choice files themselves, or choose not to provide any
   keys at all.
-  \item [Optional] The user can upload a rearrangement \ac{csv} file for
+  \item~[\textit{Optional}] The user can upload a rearrangement \ac{csv} file for
   reordering results based on keys. This can aid with postprocessing of results
   as described in \sectref{sect:rearranging}.
   \item The user selects an output folder to save results in.
@@ -262,29 +263,425 @@ button are shown. These are visible in \itemref{fig:progress}.
 
 \fig{OpenMCR status section during (top) and after (bottom) processing.}{progress.png}{fig:progress}
 
+\section{Features}
+In addition to the ability to process exam results from images, the software
+offers a number of unique features that distinguish it from existing solutions.
 
-\subsection{Features}
-\subsubsection{Automatic Scoring}
+\subsection{Automatic Scoring}
 \label{sect:scoring}
-\subsubsection{Rearrangement by Key}
+If the test administrator desires, the program can automatically score and grade
+exams and provide the results in an additional \ac{csv} file. This scoring is
+performed by comparing results to a `key', which can be provided either by
+uploading a CSV file or by including any exams with a last name of
+\verb!ZZZZZZZZZZZZ!. If the software encounters any exam with a last name field
+of 12 \textbf{Z}s (or an uploaded answer key file), it will score any exams with
+a matching Test Form Code by comparing them to that key. In the scores file (\verb!YYYY-MM-DD_HH-mm-SS__scores.csv!),
+answers are replaced with either a \verb!1! (indicating a correct answer) or
+\verb!0! (indicating an incorrect answer), as shown in \sectref{sect:scoredresults}.
+
+Scores are output both as a number of points (counting each answered question
+as 1 point) and as a percentage. Any exam-taker's answers after the last answer
+filled on the key are discarded. Thus, the answer key file determines the number
+of questions in the exam. If scoring is performed but a student writes in an
+invalid Test Form Code, their score will be marked as \verb!NO_KEY_FOUND!.
+
+If the user does not elect to convert multiple selected answers to the letter
+\verb!G!, the software supports scoring with multiple correct answers. For
+example, if the correct answer for a question is both \verb!A! \textit{and} \verb!B!,
+the administrator can fill both bubbles on their key sheet and the students'
+results will be compared against the value \verb![A|B]!.
+
+All encountered keys will be output in a separate file, called
+\verb!YYYY-MM-DD_HH-mm-__keys.csv!, which has a structure shown in
+\sectref{sect:keys}.
+
+\subsection{Rearrangement by Key}
 \label{sect:rearranging}
-\subsubsection{Sorting Results}
-\subsubsection{Output Files}
+When analyzing exam data, it is generally beneficial to have consistent
+question ordering across all results. However, many administrators choose to
+shuffle questions to discourage academic dishonesty. Each different exam
+arrangement would require a different key and thus need to be analyzed separately.
+However, the user provides a file relating each question across all keys, the
+software can automatically rearrange the results file, thus outputting a file
+that can be analyzed as if all students took exactly the same exam in the same
+order. An example of a keys arrangement file is provided in
+\sectref{sect:keysarrangement}.
+
+\subsection{Sorting Results}
+A common need voiced by educators is the ability to automatically sort results.
+Presently, educators will often manually sort the exam papers prior to scanning.
+The software handles this with ease, providing an option to automatically sort
+results by name. If this option is enabled, the results files will be sorted
+primarily by Last Name, then by First Name, and finally by Middle Name (for any
+students with identical last and first names). The keys file will be sorted by
+Test Form Code.
+
+If the option is left disabled, files will be output in exactly the same order
+they are read.
+
 \section{Optical Mark Recognition Process}
 \label{sect:process}
+The most challenging, and yet the most important, portion of this project was
+the development of a reliable process for computationally processing and reading
+images to obtain results. It is absolutely crucial that this process produces
+reliable and consistent results in order to treat all students fairly. The
+process is described in the following subsections, which are provided in order.
+
+\textit{Note}: The examples given in this section rely closely upon the OpenCV
+software library. This and all other libraries used are detailed in
+\sectref{sect:acknowledgements}. 
+
 \subsection{Image Preprocessing}
+Prior to performing any computer vision steps, the image steps through a series
+of preprocessing algorithms that dramatically improve results. Not all scans
+are made alike, and therefore the preprocessing step is intended to normalize
+images and thus improve consistency. All image processing steps in this section
+will be demonstrated on the portion of a scanned multiple-choice sheet shown in
+\itemref{fig:sample_original}.
+
+\fig{``Student ID'' portion of a sample scanned-multiple choice sheet prior to any processing.}{sample/original.jpg}{fig:sample_original}
+
+\subsubsection{Noise Removal}
+It is far easier for the software to distinguish data from scanned images if
+they are processed with a high-frequency noise removal filter first (as is the
+case with most real-world data). Thus, the images are softened using a Gaussian
+blur, which blurs the image by passing a `kernel' over the image and
+replacing each pixel with the weighted mean of the pixels in the kernel around
+that point. The pixels towards the center are given a higher weight than those
+towards the edges. The steepness of this weight change is controlled by the
+$\sigma$ value given to the function, as shown in \itemref{eq:gaussian}.
+
+\eq{2D Gaussian distribution function, where $x$ and $y$ are $0$ at the center of the kernel.}{\[ G(x,y)=\frac{1}{2\pi\sigma^2}e^-\frac{x^2+y^2}{2\sigma^2} \]}{eq:gaussian}
+
+As the resolution of input images is completely unknown this software, the $\sigma$
+value and kernel size must be dynamically chosen to avoid over-processing small images or
+under-processing large ones. For OpenMCR, the $\sigma$ is calculated such that
+the value is equal to $\sqrt{2}$ when the smallest image dimension is 2500
+pixels, and directly proportional to this value at other dimensions (\itemref{eq:sigma}). This
+provides optimal results at the image size that is expected to be
+typical based on a review of modern scanners.
+
+\eq{Relationship used to calculate $\sigma$ for Gaussian distribution, where $w$ is the number of pixels along the smaller side of he input image.}{\[ \sigma(w)=w(5.6569\times10^-4) \]}{eq:sigma}
+
+This is represented in code by \itemref{code:noiseremoval}. An example of
+the result of this process is shown in \itemref{fig:noiseremoval}.
+
+\fig{Sample portion of scanned sheet after noise removal flter is applied.}{sample/noise_filtered.jpg}{fig:noiseremoval}
+
+\begin{codesample}[h]
+  \caption{Gaussian filter-based noise reduction of an input image.}
+  \label{code:noiseremoval}
+  \begin{minted}[autogobble, bgcolor=bg]{python}
+    import cv2 # OpenCV library
+
+    def remove_hf_noise(image):
+      smallest_dimension = min(image.shape)
+      sigma = smallest_dimension * 5.6569e-4
+      # Setting kernel size to (0, 0) indicates that OpenCV
+      # should select a size based on sigma.
+      result = cv2.GaussianBlur(
+        image, (0, 0), sigmaX=sigma, sigmaY=sigma
+      )
+      return result
+  \end{minted}
+\end{codesample}
+
+\subsubsection{Thresholding}
+
+After noise removal, the image is thresholded---that is, each
+pixel is converted to either pure black or pure white.
+Removing the extraneous color and brightness information
+makes shapes sharper and simplifies processing by simply
+classifying each pixel as dark or light.
+
+Prior to applying the threshold filter, the image is converted to black and
+white to reduce pixel information to a brightness value alone. Then, any pixel
+with a brightness value below the set threshold is considered to be black, and
+all other pixels are white.
+
+After converting the image to black and white, the binary threshold algorithm is
+applied as described above. OpenCV provides a built-in flag to enable Otsu's
+thresholding algorithm, which automatically picks a threshold value by treating the image
+as one with a bimodal distribution of lumosity, and then taking a value that is
+approximately between the two peaks to use as the threshold.
+
+The result of applying this process is shown in \itemref{fig:thresholded}, which
+was created using approximately the code given in \itemref{code:thresholding}.
+
+\fig{Sample portion of scanned sheet after thresholding is applied.}{sample/thresholded.jpg}{fig:thresholded}
+
+\begin{codesample}[h]
+  \caption{Black-and-white conversion and thresholding of an input image.}
+  \label{code:thresholding}
+  \begin{minted}[autogobble, bgcolor=bg]{python}
+    import cv2
+
+    def threshold(image):
+      grayscale_image = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+      _, result = cv2.threshold(
+        grayscale_image, 0, 255,
+        cv2.THRESH_BINARY | cv2.THRESH_OTSU
+      )
+      return result
+  \end{minted}
+\end{codesample}
+
+
 \subsection{Corner Detection}
 \label{sect:cornerfinding}
+After preprocessing filters are applied, the software must locate the document
+corners in order to establish the grid. There is no assumption made as to the
+rotation or size of the input document---it could, for example, be scanned as
+$^1/_4$ of the input image and angled at $45\degree$ from vertical. Therefore,
+the algorithm must be robust. The corner-finding algorithm takes the following
+steps.
+
+\subsubsection{Edge Finding}
+The Canny edge-detection algorithm simply finds all
+locations in the image that are borders between light and dark regions, turns
+these locations into white pixels, and leaves all other pixels black. This
+enables simple location of common shapes.
+
+The results of edge detection as performed in \itemref{code:edgedetecting} is
+shown in \itemref{fig:edgedetected}.
+
+\fig{Sample portion of scanned sheet after edge detection.}{sample/edges.jpg}{fig:edgedetected}
+
+The basic edge-detecting algorithm returns
+a matrix of pixels with values of either $1$ or $0$. To convert this matrix to
+a list of approximated polygons, each defined by a list of coordinates,
+OpenCV provides an additional method (also given in \itemref{code:edgedetecting}).
+
+\begin{codesample}[h]
+  \caption{Canny edge-detection and polygon establishment performed on an input image.}
+  \label{code:edgedetecting}
+  \begin{minted}[autogobble, bgcolor=bg]{python}
+    import cv2
+
+    def detect_edges(image):
+      return cv2.Canny(
+        image, 100, 300, L2gradient=True, edges=3
+      )
+
+    def detect_polygons(image):
+      edges = detect_edges(image)
+      return cv2.findContours(
+        edges, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE
+      )
+  \end{minted}
+\end{codesample}
+
+\subsubsection{Establishing the \textbf{L}-Mark}
+The mark in the top-left corner of the multiple-choice sheet is intentionally
+shaped to be unique among all other polygons in the document in order to make it
+identifiable by the software. The mark is distinguishable by the fact that it
+has exactly 6 vertices, all angles are (approximately in the case of a scanned
+image) $90\degree$, 4 sides are approximately of length $l$ (what we call
+the `unit' length) while the other 2 sides are approximately of length $2l$,
+and the two longer sides are adjacent. Therefore, the algorithm is defined as:
+
+\begin{enumerate}
+  \item For each polygon:
+    \begin{enumerate}
+      \item If the number of sides is not 6, go to the next polygon.
+      \item Calculate the internal angles at each vertex.
+      \item If all angles are not within 15\% of $90\degree$, go to the next polygon.
+      \item Calculate the length of each side.
+      \item Find the longest two sides.
+      \item If the longest two sides are not adjacent, go to the next polygon.
+      \item Divide the length of the longest two sides by two.
+      \item If the four shortest side lengths and the half-lengths of the
+        longest sides are not within 15\% of the mean of those values, go to
+        the next polygon.
+      \item This polygon is the \textbf{L}-mark. Return it and exit the loop.
+    \end{enumerate}
+  \item If no mark was found, raise an error.
+\end{enumerate}
+
+This algorithm is written in Python in \itemref{code:lmark}.
+
+\begin{codesample}[h]
+  \caption{Canny edge-detection and polygon establishment performed on an input image.}
+  \label{code:lmark}
+  \begin{minted}[autogobble, bgcolor=bg]{python}
+    import cv2
+
+    def find_l_mark(polygons):
+      for polygon in polygons:
+        if len(polygon) != 6:
+          continue
+
+        angles = calculate_angles(polygon)
+        if any(
+          [abs(angle - 90) > (0.15 * 90) for angle in angles]
+        ):
+          continue
+
+        lengths = calculate_lengths(polygon)
+        greatest_indexes = find_greatest_indexes(lengths, n=2)
+        if(not are_adjacent(lengths, greatest_indexes)):
+          continue
+
+        unit_lengths = [
+          length if i not in greatest_indexes
+          else length / 2 
+          for i, length in enumerate(lengths)
+        ]
+        l = mean(unit_lengths)
+        if any(
+          [abs(val - l) > (0.15 * l) for val in unit_lengths]
+        ):
+          continue
+        
+        return polygon
+      raise RuntimeError("Could not find L-mark.")
+  \end{minted}
+\end{codesample}
+
+
+\subsubsection{Establishing Other Marks}
+Three points are needed to establish a grid across an image.
+In order to make the grid as accurate as possible, points that
+are as far away from each other as possible are used. Therefore, it is only
+necessary to find the bottom-left and bottom-right corner marks after finding
+the \textbf{L}-mark. This significantly limits the area of possibilities for where these marks
+may be located. Thus, the location, approximate size (side length $l$), and shape
+are all known, so locating these marks is made easier.
+
+The algorithm for locating other marks is similar to that for locating the
+\textbf{L}-mark.
+
+\begin{enumerate}
+  \item For each polygon:
+    \begin{enumerate}
+      \item If the number of sides is not 4, go to the next polygon.
+      \item Calculate the internal angles at each vertex.
+      \item If all angles are not within 15\% of $90\degree$, go to the next polygon.
+      \item Establish a coordinate system as defined in \itemref{fig:lmarkcoords} (this process is described in \sectref{sect:coordsystem}).
+      \item If all of the points are within 15\% of $64l$ (where $l$ is the unit
+      length from the \textbf{L}-mark) from the \textbf{L}-mark on the newly established
+      $y$-axis \textit{and} all of the points are within that same range size
+      around $x$=0 on the newly established system, return the mark as the
+      bottom-left mark.
+      \item If all of the points are within 15\% of $64l$ from the \textbf{L}-mark on the
+      new $y$-axis \textit{and} all of the points are within 15\% of $50l$ from
+      the \textbf{L}-mark on the on the new $x$-axis, return the mark as the bottom-
+      right mark.
+    \end{enumerate}
+  \item If either mark couldn't be found, raise an error.
+\end{enumerate}
+
+\fig{Coordinate system established on the \textbf{L}-mark to find other marks.}{coords.png}{fig:lmarkcoords}
+
+
+
 \subsection{Grid Establishment}
+\subsubsection{Establishing a Coordinate Transformation}
+\label{sect:coordsystem}
+After locating all three marks, a coordinate transformation can be established from the
+three points. The top-left point of the \textbf{L}-mark (point $A$) becomes $(0,0)$, the bottom-left
+point of the bottom-left square mark (point $B$) becomes ${(0,1)}$, and the bottom-right point of the
+bottom-right square (point $C$) becomes $(1,1)$. This transformation is described mathematically
+
+
 \subsection{Mark Reading}
+
+\subsubsection{Image Dilation}
+In low-resolution images, the combination of Gaussian blurring and thresholding
+can result in significant loss of data, even when using a dynamic $\sigma$ for
+the Gaussian filter. There is not enough data in the source image to be able to
+sacrifice some data for the purpose of noise removal. However, the noise still
+must be removed.
+
+The result of this high level of data loss in this scenario, is that bubbles
+that are darker already (those with \textbf{W} or \textbf{B} in them) become
+indistinguishable from filled bubbles, as the program only considers the
+fraction of dark pixels in a circle to determine whether it is filled or not
+(see \sectref{sect:reading}).
+
+It is possible, however, to differentiate these
+circles by taking advantage of the fact that the circles containing letters are
+more irregular (contain less contiguous chunks of dark or light pixels) than the
+filled circles. Thus, an algorithm that can expand chunks of light pixels will
+reduce the unfilled circles far more than the filled circles, and this is exactly
+what an image dilation algorithm is intended to do. A dilation algorithm passes
+over the image with a square kernel and replaces each pixel with the maximum value
+of the pixels in the kernel around the original pixel.
+
+As the problem is primarily limited to smaller images, all images are dilated
+but the kernel size is \textit{not} dynamic - it is always $3\times3$ pixels.
+Therefore, it dramatically affects smaller images while having a much smaller
+effect on larger images.
+
+\textit{Note}: This preprocessing step does not aid in the corner finding
+process in any way, therefore, it is the only filter applied \textit{after}
+corner finding is completed.
+
+The result of this algorithm as applied in \itemref{code:dilation} can be seen
+in \itemref{fig:dilated}.
+
+\fig{Sample portion of scanned sheet after dilation is applied.}{sample/dilated.jpg}{fig:dilated}
+
+\begin{codesample}[h]
+  \caption{Simple dilation of an input image.}
+  \label{code:dilation}
+  \begin{minted}[autogobble, bgcolor=bg]{python}
+    import cv2
+    import numpy as np
+
+    def threshold(image):
+      # Creates a 3x3 matrix of 8-bit integers with a value of 1
+      kernel = np.ones((3, 3), np.uint8)
+      return cv2.dilate(image, kernel, iterations=1)
+  \end{minted}
+\end{codesample}
+\label{sect:reading}
 \begin{appendices}
 \section{Acknowledgements}
+\label{sect:acknowledgements}
 \section{Licenses}
 \label{sect:licenses}
 \section{Multiple-Choice Sheet}
 \label{sect:sheet}
 The full printable multiple-choice sheet is available on the next page. See
 \sectref{sect:licenses} for the license information for this sheet.
-%\includepdf{sheet.pdf} 
+%\includepdf{sheet.pdf}
+\section{CSV File Structures}
+\subsection{Raw Results}
+\label{sect:rawresults}
+\begin{center}
+  \begin{tabular}{ l | l | l | l | l | l | c | c | c | c }
+    Last Name & First Name & Middle Name & Test Form Code & Student ID & Course ID & Q1 & Q2 & Q3 & \ldots \\
+    \hline
+    Doe & John & Ga & A & 13579 & 3245 & B & D & A & \ldots
+  \end{tabular}
+\end{center} 
+\subsection{Scored Results}
+\label{sect:scoredresults}
+\begin{center}
+  \begin{tabular}{ l | l | l | l | l | l | c | c | c | c }
+    Last Name & First Name & Middle Name & Test Form Code & Student ID & Course ID & Q1 & Q2 & Q3 & \ldots \\
+    \hline
+    Doe & John & Ga & A & 13579 & 3245 & B & D & A & \ldots
+  \end{tabular}
+\end{center}
+\subsection{Keys}
+\label{sect:keys}
+\begin{center}
+  \begin{tabular}{ l | l | l | l | l | l | c | c | c | c }
+    Last Name & First Name & Middle Name & Test Form Code & Student ID & Course ID & Q1 & Q2 & Q3 & \ldots \\
+    \hline
+    Doe & John & Ga & A & 13579 & 3245 & B & D & A & \ldots
+  \end{tabular}
+\end{center} 
+\subsection{Keys Arrangement}
+\label{sect:keysarrangement}
+\begin{center}
+  \begin{tabular}{ l | l | l | l | l | l | c | c | c | c }
+    Last Name & First Name & Middle Name & Test Form Code & Student ID & Course ID & Q1 & Q2 & Q3 & \ldots \\
+    \hline
+    Doe & John & Ga & A & 13579 & 3245 & B & D & A & \ldots
+  \end{tabular}
+\end{center} 
 \end{appendices}
 \end{document}

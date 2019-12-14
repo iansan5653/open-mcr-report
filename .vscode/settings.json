@@ -31,6 +31,11 @@
   ],
   "cSpell.words": [
     "Scantron",
-    "sectionref"
-  ]
+    "grayscale",
+    "lumosity",
+    "sectionref",
+    "thresholded",
+    "thresholding"
+  ],
+  "editor.rulers": [62, 80]
 }
