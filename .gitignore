@@ -281,3 +281,4 @@ report.pdf
 *.codesample
 *.c
 *_temp.tex
+report.lo*

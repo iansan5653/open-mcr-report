@@ -8,14 +8,21 @@
 \usepackage[colorlinks=true]{hyperref}
 \usepackage{graphicx}
 \usepackage{gensymb}
+\usepackage{amsmath}
+\usepackage{mismath}
+\usepackage{mathfixs}
+\usepackage{pdflscape}
+\usepackage{geometry}
+\usepackage{csquotes}
 \definecolor{usfgreen}{rgb}{0, 0.40, 0.28}
-\newcommand*{\sectref}[1]{\hypersetup{linkcolor=usfgreen}\hyperref[{#1}]{\ref*{#1}: \nameref*{#1}}}
-\newcommand*{\itemref}[1]{\hypersetup{linkcolor=usfgreen}\hyperref[{#1}]{\autoref*{#1}}}
+\newcommand*{\sectref}[1]{\hyperref[{#1}]{\ref*{#1}: \nameref*{#1}}}
+\newcommand*{\itemref}[1]{\hyperref[{#1}]{\autoref*{#1}}}
 \newcommand*{\boxedimage}[1]{\fbox{\includegraphics[width=0.5\textwidth]{img/#1}}}
+\newcommand*{\newappendix}[1]{\newpage\section{#1}}
 \DeclareCaptionType{codesample}[Code Sample][List of Code Samples]
 \DeclareCaptionType{eqn}[Equation][List of Equations]
 \newcommand{\fig}[3]{
-  \begin{figure}[h]
+  \begin{figure}[!htbp]
     \caption{#1}
     \label{#3}
     \centering
@@ -23,7 +30,7 @@
   \end{figure}
 }
 \newcommand{\eq}[3]{
-  \begin{eqn}[h]
+  \begin{eqn}[!htbp]
     #2
     \caption{#1}
     \label{#3}
@@ -49,6 +56,7 @@
 }
 
 \begin{document}
+\hypersetup{linkcolor=usfgreen}
 \definecolor{bg}{rgb}{0.95,0.95,0.95}
 \frenchspacing
 
@@ -56,11 +64,11 @@
 
 \acsetup{first-style=short}
 
-\AtBeginEnvironment{appendices}{\renewcommand\thesection{Appendix~\Alph{section}}}
+\AtBeginEnvironment{appendices}{\renewcommand\thesection{\Alph{section}}}
 \renewcommand{\appendixname}{Appendix}
 
-\title{Development of OpenMCR: An Open-Source Tool for OMR Exams}
-\author{Ian Sanders}
+\title{OpenMCR: An Open-Source Tool for OMR Exams}
+\author{Ian Sanders\\[1cm]{\small Supervisor: Dr. Autar Kaw, PhD.}}
 \date{December 2019}
 \maketitle
 
@@ -215,9 +223,7 @@ complex process of importing, preprocessing, and reading the filled sheets.
 \fig{Logo for OpenMCR software utility.}{logo.png}{fig:logo}
 
 Raw results from the software are output in a \ac{csv} file in the form shown 
-in \sectref{sect:rawresults} as \verb!YYYY-MM-DD_HH-mm-SS__results.csv!, where
-\verb!YYYY-MM-DD_HH-mm-SS! is the time that processing was performed (in
-order to avoid overwriting any existing files).
+in \sectref{sect:rawresults}.
 
 \section{User Interface Design}
 OpenMCR provides test administrators with a simple, intuitive interface in which
@@ -275,7 +281,7 @@ performed by comparing results to a `key', which can be provided either by
 uploading a CSV file or by including any exams with a last name of
 \verb!ZZZZZZZZZZZZ!. If the software encounters any exam with a last name field
 of 12 \textbf{Z}s (or an uploaded answer key file), it will score any exams with
-a matching Test Form Code by comparing them to that key. In the scores file (\verb!YYYY-MM-DD_HH-mm-SS__scores.csv!),
+a matching Test Form Code by comparing them to that key. In the scores file,
 answers are replaced with either a \verb!1! (indicating a correct answer) or
 \verb!0! (indicating an incorrect answer), as shown in \sectref{sect:scoredresults}.
 
@@ -291,8 +297,7 @@ example, if the correct answer for a question is both \verb!A! \textit{and} \ver
 the administrator can fill both bubbles on their key sheet and the students'
 results will be compared against the value \verb![A|B]!.
 
-All encountered keys will be output in a separate file, called
-\verb!YYYY-MM-DD_HH-mm-__keys.csv!, which has a structure shown in
+All encountered keys will be output in a separate file which has a structure shown in
 \sectref{sect:keys}.
 
 \subsection{Rearrangement by Key}
@@ -368,7 +373,7 @@ the result of this process is shown in \itemref{fig:noiseremoval}.
 
 \fig{Sample portion of scanned sheet after noise removal flter is applied.}{sample/noise_filtered.jpg}{fig:noiseremoval}
 
-\begin{codesample}[h]
+\begin{codesample}[!htbp]
   \caption{Gaussian filter-based noise reduction of an input image.}
   \label{code:noiseremoval}
   \begin{minted}[autogobble, bgcolor=bg]{python}
@@ -410,7 +415,7 @@ was created using approximately the code given in \itemref{code:thresholding}.
 
 \fig{Sample portion of scanned sheet after thresholding is applied.}{sample/thresholded.jpg}{fig:thresholded}
 
-\begin{codesample}[h]
+\begin{codesample}[!htbp]
   \caption{Black-and-white conversion and thresholding of an input image.}
   \label{code:thresholding}
   \begin{minted}[autogobble, bgcolor=bg]{python}
@@ -452,7 +457,7 @@ a matrix of pixels with values of either $1$ or $0$. To convert this matrix to
 a list of approximated polygons, each defined by a list of coordinates,
 OpenCV provides an additional method (also given in \itemref{code:edgedetecting}).
 
-\begin{codesample}[h]
+\begin{codesample}[!htbp]
   \caption{Canny edge-detection and polygon establishment performed on an input image.}
   \label{code:edgedetecting}
   \begin{minted}[autogobble, bgcolor=bg]{python}
@@ -500,7 +505,7 @@ and the two longer sides are adjacent. Therefore, the algorithm is defined as:
 
 This algorithm is written in Python in \itemref{code:lmark}.
 
-\begin{codesample}[h]
+\begin{codesample}[!htbp]
   \caption{Canny edge-detection and polygon establishment performed on an input image.}
   \label{code:lmark}
   \begin{minted}[autogobble, bgcolor=bg]{python}
@@ -573,20 +578,88 @@ The algorithm for locating other marks is similar to that for locating the
 
 \fig{Coordinate system established on the \textbf{L}-mark to find other marks.}{coords.png}{fig:lmarkcoords}
 
-
-
 \subsection{Grid Establishment}
-\subsubsection{Establishing a Coordinate Transformation}
+\subsubsection{Establishing the Coordinate Transformation}
 \label{sect:coordsystem}
 After locating all three marks, a coordinate transformation can be established from the
 three points. The top-left point of the \textbf{L}-mark (point $A$) becomes $(0,0)$, the bottom-left
 point of the bottom-left square mark (point $B$) becomes ${(0,1)}$, and the bottom-right point of the
-bottom-right square (point $C$) becomes $(1,1)$. This transformation is described mathematically
+bottom-right square (point $C$) becomes $(1,1)$. This transformation is described
+mathematically by \itemref{eq:transform} and can be performed using numpy as
+shown in \itemref{code:transform} 
 
+\eq{Transformation of bases from the established coordinate system to one defined by three points $A$, $B$, and $C$, such that $P'(A)=(0,0)$, $P'(B)=(0,1)$, $P'(C)=(1,1)$.}{
+  \[\mathbf{M}=\left[\begin{matrix}M_1\\M_2\\M_3\\M_4\\M_5\\M_6\\\end{matrix}\right]=\left[\begin{matrix}A_x&A_y&1&0&0&0\\B_x&B_y&1&0&0&0\\C_x&C_y&1&0&0&0\\0&0&0&A_x&A_y&1\\0&0&0&B_x&B_y&1\\0&0&0&C_x&C_y&1\\\end{matrix}\right]^{-1}\left[\begin{matrix}0\\0\\1\\0\\1\\1\\\end{matrix}\right]\]
+  \[\mathbf{T}=\left[\begin{matrix}M_1&M_2\\M_4&M_5\\\end{matrix}\right],\vec{R}=\left[\begin{matrix}M_3\\M_6\\\end{matrix}\right]\]
+  \[\vec{P}'(\vec{P})=\mathbf{T}\vec{P}+\vec{R}\]
+}{eq:transform}
+
+\begin{codesample}[!htbp]
+  \caption{Transformation of bases as described by \itemref{eq:transform}. Accepts points as tuples of $(x,y)$ and returns a pair of transformation functions.}
+  \label{code:transform}
+  \begin{minted}[autogobble, bgcolor=bg]{python}
+    import numpy as np
+
+    def create_change_of_basis(A, B, C):
+      from_matrix = np.array([[A[0], A[1], 1, 0, 0, 0],
+                              [B[0], B[1], 1, 0, 0, 0],
+                              [C[0], C[1], 1, 0, 0, 0],
+                              [0, 0, 0, A[0], A[1], 1],
+                              [0, 0, 0, B[0], B[1], 1],
+                              [0, 0, 0, C[0], C[1], 1]],
+                            float)
+      target_matrix = np.array([[0], [0], [1], [0], [1], [1]],
+                              float)
+
+      M = np.matmul(np.linalg.inv(from_matrix), target_matrix)
+
+      T = np.array([[result[0][0], result[1][0]],
+                    [result[3][0], result[4][0]]])
+      R = np.array([[result[2][0]], [result[5][0]]])
+
+      def to_basis(point):
+          point_vector = np.array(
+            [[point.x], [point.y]], float
+          )
+          result = np.matmul(
+            transformation_matrix, point_vector
+          ) + rotation_matrix
+          return (result[0][0], result[1][0])
+
+      def from_basis(point: Point) -> Point:
+          point_vector = np.array(
+            [[point.x], [point.y]], float
+          )
+          result = np.matmul(
+            np.linalg.inv(transformation_matrix),
+            (point_vector - rotation_matrix)
+          )
+          return (result[0][0], result[1][0])
+
+      return to_basis, from_basis
+  \end{minted}
+\end{codesample}
+
+\subsubsection{Establishing the Grid}
+Once coordinate transformation functions are obtained, establishing the grid
+across the page is simple. It is known that there are 36 grid cells across the
+page and 48 grid cells down the page. Thus, the grid cell width is $^1/_{36}$, or
+0.0278, and the cell height is $^1/_{48}$, or 0.0208, in the new coordinate
+system. The grid (along with the cell masks
+described in \sectref{sect:mask}) is shown in \itemref{fig:samplegrid}.
+
+\fig{Demonstration of the grid and cell masks on a sample portion of a scanned sheet.}{sample/grid.jpg}{fig:samplegrid}
 
 \subsection{Mark Reading}
+\label{sect:reading}
+
+After the grid is established, the location of each mark is known with complete
+confidence. At that point, all that is left is to determine whether each mark
+is filled in or not.
 
 \subsubsection{Image Dilation}
+Image dilation is another preprocessing step, applied after grid establishment
+but before mark reading.
 In low-resolution images, the combination of Gaussian blurring and thresholding
 can result in significant loss of data, even when using a dynamic $\sigma$ for
 the Gaussian filter. There is not enough data in the source image to be able to
@@ -613,16 +686,12 @@ but the kernel size is \textit{not} dynamic - it is always $3\times3$ pixels.
 Therefore, it dramatically affects smaller images while having a much smaller
 effect on larger images.
 
-\textit{Note}: This preprocessing step does not aid in the corner finding
-process in any way, therefore, it is the only filter applied \textit{after}
-corner finding is completed.
-
 The result of this algorithm as applied in \itemref{code:dilation} can be seen
 in \itemref{fig:dilated}.
 
 \fig{Sample portion of scanned sheet after dilation is applied.}{sample/dilated.jpg}{fig:dilated}
 
-\begin{codesample}[h]
+\begin{codesample}[!htbp]
   \caption{Simple dilation of an input image.}
   \label{code:dilation}
   \begin{minted}[autogobble, bgcolor=bg]{python}
@@ -635,53 +704,183 @@ in \itemref{fig:dilated}.
       return cv2.dilate(image, kernel, iterations=1)
   \end{minted}
 \end{codesample}
-\label{sect:reading}
+
+\subsubsection{Cell Masking}
+\label{sect:mask}
+Each grid cell forms a square around the target mark. To each of these cells, a
+circular mask is applied in order to remove any extraneous information (such as
+the boundary of a bordering rectangle). The diameter of this mask is 75\% of the
+entire cell width, as shown in \itemref{fig:samplegrid}.
+
+\subsubsection{Determining Fill Threshold}
+The number of black pixels divided by the total number of pixels in the masked
+grid cell for a mark is referred to as the `grid cell fill fraction', $k$. Determining
+whether a mark is filled or not requires comparing that mark with a threshold
+fill fraction, $j$: if $k>j$, then the cell is filled.
+
+The threshold $j$ is a crucial value---if it is too low, the darkest unfilled marks will be
+read as filled. If it is too high, the lightest filled marks will not be read.
+To this end, $j$ cannot be a static value; it must be dynamically determined for
+each sheet.
+
+It can be observed that the filled marks are expected to be significantly darker
+than the unfilled marks. Therefore, the optimal value of $j$ is expected to be
+between the two marks with the greatest difference in their $k$ value. However,
+if a mark's letter and circle are missing (ie, if an exam-taker erased the mark or
+it failed to print), then the greatest difference in $k$ could be between the
+missing mark and the first non-missing unfilled mark, which would cause nearly
+the entire sheet to be read as filled. Thus, the algorithm assumes that less
+than 20\% of the marks are filled (an entirely full sheet only has 10.5\% of
+marks filled), and thus only looks in the 20\% of the marks that are most full.
+
+Therefore, algorithm works as follows:
+\begin{enumerate}
+  \item Calculate the fill percent $k$ of all marks
+  \item Sort all marks by their $k$ value
+  \item Discard the bottom 80\% of the sorted list
+  \item Calculate a new set $h$ where $h_i = k_i - k_{i-1}$
+  \item Find the index $g$ of the greatest value in $h$
+  \item Return the value $(k_g-k_{g-1})/2$
+\end{enumerate}
+
+This algorithm is implemented in \itemref{code:fillthreshold}.
+
+\begin{codesample}[!htbp]
+  \caption{Determination of mark fill threshold.}
+  \label{code:fillthreshold}
+  \begin{minted}[autogobble, bgcolor=bg]{python}
+    import numpy as np
+
+    def calculate_fill_threshold(mark_fill_percents):
+        sorted_fill_percents = np.sort(fill_percents)
+
+        number_to_keep = round(sorted_fill_percents.size / 5)
+        last_chunk = sorted_fill_percents[-number_to_keep:]
+
+        differences = [
+            last_chunk[i + 1] - last_chunk[i]
+            for i in range(last_chunk.size - 1)
+        ]
+        greatest_difference_index =
+          find_greatest_value_index(differences)
+
+        return (
+          last_chunk[greatest_difference_index] +
+          last_chunk[greatest_difference_index + 1]
+        ) / 2
+  \end{minted}
+\end{codesample}
+
+After calculating this value, all marks are compared to the value, and mark
+reading is complete.
+
 \begin{appendices}
 \section{Acknowledgements}
 \label{sect:acknowledgements}
-\section{Licenses}
+This project relies on the following freely available tools and libraries:
+\begin{enumerate}
+  \item Python 3.7: \url{https://www.python.org}
+  \item Nullsoft Scriptable Install System (NSIS): \url{https://nsis.sourceforge.io}
+  \item Pyright: \url{https://github.com/microsoft/pyright}
+  \item OpenCV: \url{https://opencv.org/}
+  \item NumPy: \url{https://numpy.org/}
+  \item PyInstaller: \url{https://www.pyinstaller.org/}
+\end{enumerate}
+
+\newappendix{Licenses}
 \label{sect:licenses}
-\section{Multiple-Choice Sheet}
+
+\subsection{Multiple-Choice Sheet}
+The multiple-choice sheet distributed with this report is licensed under the
+Creative Commons Attribution-NonCommercial-ShareAlike 4.0 International license
+(CC BY-NC-SA 4.0). In summary, this means that you are free to distribute and
+modify the document so long as you share it under the same license, provide
+attribution, and do not use it for commercial purposes.
+
+For the full license terms,
+see \url{https://creativecommons.org/licenses/by-nc-sa/4.0/}.
+
+\subsection{Code}
+The OpenMCR software and all code samples in this report are licensed under the
+GNU General Public License (3.0):
+\begin{displayquote}
+Copyright (C) 2019 Ian Sanders
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+\end{displayquote}
+
+For the full license terms, see
+\url{https://www.gnu.org/licenses/gpl-3.0.en.html}.
+
+\subsection{Report}
+
+All other portions of this report are Copyright (C) 2019 Ian Sanders.
+
+\newappendix{Multiple-Choice Sheet}
 \label{sect:sheet}
 The full printable multiple-choice sheet is available on the next page. See
 \sectref{sect:licenses} for the license information for this sheet.
-%\includepdf{sheet.pdf}
-\section{CSV File Structures}
+\includepdf{sheet.pdf}
+
+\newappendix{CSV File Structures}
+Sample tables representing the CSV file output structures are provided on the
+following pages. Note that the CSV file format is a text-based one in which new
+table rows are identified by new lines, and columns are delimited by commas.
+\newgeometry{bottom=0.5in,left=0.5in}
+\begin{landscape}
 \subsection{Raw Results}
 \label{sect:rawresults}
-\begin{center}
-  \begin{tabular}{ l | l | l | l | l | l | c | c | c | c }
-    Last Name & First Name & Middle Name & Test Form Code & Student ID & Course ID & Q1 & Q2 & Q3 & \ldots \\
-    \hline
-    Doe & John & Ga & A & 13579 & 3245 & B & D & A & \ldots
-  \end{tabular}
-\end{center} 
+\verb!YYYY-MM-DD_HH-mm-SS__results.csv!\\
+\\
+\begin{tabular}{ l | l | l | l | l | l | c | c | c | c }
+  Last Name & First Name & Middle Name & Test Form Code & Student ID & Course ID & Q1 & Q2 & Q3 & \ldots \\
+  \hline
+  Elliot & Kadie  & Ga     & A      & 13579  & 3245   & B      & D      & A      & \ldots \\
+  Walsh  & Tray   & Hu     & C      & 32487  & 3245   & C      & B      & D      & \ldots \\
+  \ldots & \ldots & \ldots & \ldots & \ldots & \ldots & \ldots & \ldots & \ldots & \ldots
+\end{tabular}
 \subsection{Scored Results}
 \label{sect:scoredresults}
-\begin{center}
-  \begin{tabular}{ l | l | l | l | l | l | c | c | c | c }
-    Last Name & First Name & Middle Name & Test Form Code & Student ID & Course ID & Q1 & Q2 & Q3 & \ldots \\
-    \hline
-    Doe & John & Ga & A & 13579 & 3245 & B & D & A & \ldots
-  \end{tabular}
-\end{center}
+\verb!YYYY-MM-DD_HH-mm-SS__scores.csv!\\
+\\
+\begin{tabular}{ l | l | l | l | l | l | r | r  | c | c | c | c }
+  Last Name & First Name & Middle Name & Test Form Code & Student ID & Course ID & Total Score (\%) & Total Points & Q1 & Q2 & Q3 & \ldots \\
+  \hline
+  Elliot & Kadie  & Ga     & A      & 13579  & 3245   & 95.00  & 19     & 1      & 1      & 1      & \ldots \\
+  Walsh  & Tray   & Hu     & C      & 32487  & 3245   & 85.00  & 17     & 0      & 1      & 0      & \ldots \\
+  \ldots & \ldots & \ldots & \ldots & \ldots & \ldots & \ldots & \ldots & \ldots & \ldots & \ldots & \ldots
+\end{tabular}
 \subsection{Keys}
 \label{sect:keys}
-\begin{center}
-  \begin{tabular}{ l | l | l | l | l | l | c | c | c | c }
-    Last Name & First Name & Middle Name & Test Form Code & Student ID & Course ID & Q1 & Q2 & Q3 & \ldots \\
-    \hline
-    Doe & John & Ga & A & 13579 & 3245 & B & D & A & \ldots
-  \end{tabular}
-\end{center} 
+\verb!YYYY-MM-DD_HH-mm-SS__keys.csv!\\
+\\
+\begin{tabular}{ l | c | c | c | c }
+  Test Form Code & Q1 & Q2 & Q3 & \ldots \\
+  \hline
+  A      & B      & D      & A      & \ldots \\
+  C      & A      & B      & C      & \ldots \\
+  \ldots & \ldots & \ldots & \ldots & \ldots
+\end{tabular}
 \subsection{Keys Arrangement}
 \label{sect:keysarrangement}
-\begin{center}
-  \begin{tabular}{ l | l | l | l | l | l | c | c | c | c }
-    Last Name & First Name & Middle Name & Test Form Code & Student ID & Course ID & Q1 & Q2 & Q3 & \ldots \\
-    \hline
-    Doe & John & Ga & A & 13579 & 3245 & B & D & A & \ldots
-  \end{tabular}
-\end{center} 
+\textit{This is an input-only file.}\\
+\\
+\begin{tabular}{ l | c | c | c | c }
+  Test Form Code & Q1 & Q2 & Q3 & \ldots \\
+  \hline
+  A      & 1      & 2      & 3      & \ldots \\
+  C      & 12     & 3      & 8      & \ldots \\
+  \ldots & \ldots & \ldots & \ldots & \ldots
+\end{tabular}
+\end{landscape}
+\restoregeometry
 \end{appendices}
 \end{document}
